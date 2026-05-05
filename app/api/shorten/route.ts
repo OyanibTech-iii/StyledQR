@@ -16,12 +16,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid URL format. Please include http:// or https://' }, { status: 400 });
     }
 
+    console.log('Attempting to shorten URL:', url);
     const shortUrl = await TinyURL(url);
+    console.log('TinyURL response:', shortUrl);
     
-    if (shortUrl) {
+    if (shortUrl && typeof shortUrl === 'string' && shortUrl.startsWith('http')) {
       return NextResponse.json({ shortUrl });
     } else {
-      return NextResponse.json({ error: 'Failed to shorten URL' }, { status: 500 });
+      console.error('TinyURL returned invalid response:', shortUrl);
+      return NextResponse.json({ error: 'TinyURL returned an invalid response' }, { status: 500 });
     }
   } catch (error: any) {
     console.error('Shorten API error:', error);

@@ -63,7 +63,14 @@ const QRCodeGenerator = () => {
         body: JSON.stringify({ url: options.data }),
       });
       
-      const data = await response.json();
+      const text = await response.text();
+      let data;
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        setShortenError(`Invalid server response (${response.status})`);
+        return;
+      }
 
       if (response.ok && data.shortUrl) {
         setOptions(prev => ({ ...prev, data: data.shortUrl }));
