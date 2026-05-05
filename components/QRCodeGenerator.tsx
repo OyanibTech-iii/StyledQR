@@ -40,7 +40,7 @@ const QRCodeGenerator = () => {
     }
   });
 
-  const qrCodeRef = useRef<QRCodeStyling>(null);
+  const qrCodeRef = useRef<QRCodeStyling | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   const [isShortening, setIsShortening] = useState(false);
@@ -88,7 +88,6 @@ const QRCodeGenerator = () => {
         width: 300,
         height: 300
       });
-      // @ts-expect-error - qrCodeRef.current is read-only but we need to initialize it
       qrCodeRef.current = qr;
       if (ref.current) {
         ref.current.innerHTML = "";
