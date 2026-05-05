@@ -64,13 +64,18 @@ const QRCodeGenerator = () => {
       });
       
       let data;
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.indexOf("application/json") !== -1) {
+      const contentType = response.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
         data = await response.json();
       } else {
+        // Fallback for non-JSON or unexpected 200 OK responses
         const text = await response.text();
-        setShortenError(`Server error (${response.status}): ${text.slice(0, 50)}`);
-        return;
+        if (response.ok && text.startsWith('http')) {
+           data = { shortUrl: text.trim() };
+        } else {
+           setShortenError(`Server error (${response.status}): ${text.slice(0, 50)}`);
+           return;
+        }
       }
 
       if (response.ok && data.shortUrl) {

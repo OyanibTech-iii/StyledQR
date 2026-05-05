@@ -24,7 +24,8 @@ export async function POST(request: Request) {
     
     if (response.ok) {
       const shortUrl = await response.text();
-      return NextResponse.json({ shortUrl });
+      // Ensure we return a clean string if TinyURL adds extra whitespace
+      return NextResponse.json({ shortUrl: shortUrl.trim() });
     } else {
       const errorText = await response.text();
       console.error('TinyURL API error status:', response.status, 'Text:', errorText);
