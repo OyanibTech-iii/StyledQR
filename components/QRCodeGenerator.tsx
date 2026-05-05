@@ -71,7 +71,7 @@ const QRCodeGenerator = () => {
         setShortenError(data.error || "Failed to shorten URL");
       }
     } catch (err: any) {
-      setShortenError("Could not connect to shortening service.");
+      setShortenError(`Connection error: ${err.message || "Please try again."}`);
     } finally {
       setIsShortening(false);
     }
