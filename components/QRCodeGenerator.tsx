@@ -63,28 +63,15 @@ const QRCodeGenerator = () => {
         body: JSON.stringify({ url: options.data }),
       });
       
-      let data;
-      const contentType = response.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        data = await response.json();
-      } else {
-        // Fallback for non-JSON or unexpected 200 OK responses
-        const text = await response.text();
-        if (response.ok && text.startsWith('http')) {
-           data = { shortUrl: text.trim() };
-        } else {
-           setShortenError(`Server error (${response.status}): ${text.slice(0, 50)}`);
-           return;
-        }
-      }
+      const data = await response.json();
 
       if (response.ok && data.shortUrl) {
         setOptions(prev => ({ ...prev, data: data.shortUrl }));
       } else {
-        setShortenError(data.error || data.details || "Failed to shorten URL");
+        setShortenError(data.error || "Failed to shorten URL");
       }
     } catch (err: any) {
-      setShortenError(`Connection error: ${err.message || "Please try again."}`);
+      setShortenError("Could not connect to shortening service.");
     } finally {
       setIsShortening(false);
     }

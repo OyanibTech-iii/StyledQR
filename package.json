@@ -12,7 +12,9 @@
     "next": "16.2.4",
     "qr-code-styling": "^1.9.2",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "tinyurl": "^1.1.7",
+    "tinyurl-api": "^1.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

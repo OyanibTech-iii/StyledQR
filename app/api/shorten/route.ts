@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import TinyURL from 'tinyurl-api';
 
 export async function POST(request: Request) {
   try {
@@ -15,24 +16,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid URL format. Please include http:// or https://' }, { status: 400 });
     }
 
-    const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
+    const shortUrl = await TinyURL(url);
     
-    if (response.ok) {
-      const shortUrl = await response.text();
-      // Ensure we return a clean string if TinyURL adds extra whitespace
-      return NextResponse.json({ shortUrl: shortUrl.trim() });
+    if (shortUrl) {
+      return NextResponse.json({ shortUrl });
     } else {
-      const errorText = await response.text();
-      console.error('TinyURL API error status:', response.status, 'Text:', errorText);
-      return NextResponse.json({ 
-        error: `TinyURL API failed with status ${response.status}`,
-        details: errorText.slice(0, 100)
-      }, { status: response.status });
+      return NextResponse.json({ error: 'Failed to shorten URL' }, { status: 500 });
     }
   } catch (error: any) {
     console.error('Shorten API error:', error);
