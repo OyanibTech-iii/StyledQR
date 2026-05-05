@@ -1,25 +1,33 @@
 import Image from "next/image";
 import QRCodeGenerator from "@/components/QRCodeGenerator";
-import logo from "./assets/officiallogo.png";
+import logoDark from "./assets/officiallogo.png";
+import logoLight from "./assets/officiallogo1.png";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <header className="max-w-6xl mx-auto text-center mb-12 flex flex-col items-center">
-        <div className="mb-6">
-          <Image 
-            src={logo} 
-            alt="Official Logo" 
-            width={120} 
-            height={120} 
-            className="rounded-xl shadow-md"
+        <div className="mb-6 relative">
+          <Image
+            src={logoDark}
+            alt="Official Logo"
+            width={120}
+            height={120}
+            className="rounded-xl shadow-md hidden dark:block"
+            priority
+          />
+          <Image
+            src={logoLight}
+            alt="Official Logo"
+            width={120}
+            height={120}
+            className="rounded-xl shadow-md block dark:hidden"
             priority
           />
         </div>
         <h1 className="text-4xl font-extrabold text-zinc-900 dark:text-white sm:text-5xl tracking-tight">
           Custom QR Code Generator
-        </h1>
-        <p className="mt-4 text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
+        </h1>        <p className="mt-4 text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto">
           Create beautiful, fully customizable QR codes for your brand. 
           Adjust colors, styles, and add your logo in seconds.
         </p>
