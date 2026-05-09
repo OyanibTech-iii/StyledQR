@@ -17,39 +17,61 @@ export async function POST(request: Request) {
 
     console.log('Attempting to shorten URL:', url);
 
-    // Use a direct fetch to TinyURL's classic API for maximum reliability
-    // Added a timeout to prevent hanging requests
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-    try {
-      const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`, {
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`TinyURL API responded with status: ${response.status}`);
+    // List of providers to try. TinyURL is primary, but cloud environments (like Render) 
+    // are sometimes blocked by TinyURL's classic API. Is.gd is a highly reliable fallback.
+    const providers = [
+      {
+        name: 'TinyURL',
+        endpoint: `https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`
+      },
+      {
+        name: 'Is.gd',
+        endpoint: `https://is.gd/create.php?format=simple&url=${encodeURIComponent(url)}`
       }
+    ];
 
-      const shortUrl = await response.text();
-      
-      console.log('TinyURL response:', shortUrl);
-      
-      if (shortUrl && shortUrl.startsWith('http')) {
-        return NextResponse.json({ shortUrl });
-      } else {
-        console.error('TinyURL returned invalid response:', shortUrl);
-        return NextResponse.json({ error: 'TinyURL returned an invalid response format' }, { status: 500 });
+    let lastError = null;
+
+    for (const provider of providers) {
+      try {
+        console.log(`Trying ${provider.name}...`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout per provider
+
+        const response = await fetch(provider.endpoint, {
+          signal: controller.signal,
+          headers: {
+            // Adding a real-looking User-Agent helps bypass some cloud provider blocks
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/plain, */*',
+          }
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const shortUrl = (await response.text()).trim();
+          
+          if (shortUrl && shortUrl.startsWith('http')) {
+            console.log(`${provider.name} success:`, shortUrl);
+            return NextResponse.json({ shortUrl, provider: provider.name });
+          }
+        }
+        
+        console.warn(`${provider.name} failed with status: ${response.status}`);
+      } catch (err: any) {
+        lastError = err;
+        console.error(`${provider.name} error:`, err.message);
+        // Continue to next provider
       }
-    } catch (fetchError: any) {
-      clearTimeout(timeoutId);
-      if (fetchError.name === 'AbortError') {
-        return NextResponse.json({ error: 'TinyURL service timed out' }, { status: 504 });
-      }
-      throw fetchError;
     }
+
+    // If all providers fail
+    return NextResponse.json({ 
+      error: 'URL shortening services are currently unavailable in this environment.',
+      details: lastError?.message || 'All providers failed'
+    }, { status: 502 });
+
   } catch (error: any) {
     console.error('Shorten API error:', error);
     return NextResponse.json({ 
